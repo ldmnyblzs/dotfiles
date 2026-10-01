@@ -16,10 +16,26 @@
   #outputs = inputs@{ self, nixpkgs, home-manager, sops-nix, ... }: {
   outputs = inputs@{ self, nixpkgs, home-manager, ... }: {
     nixosConfigurations = {
-      laptop = nixpkgs.lib.nixosSystem {
+      acer = nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         modules = [
-          ./hosts/laptop
+          ./hosts/acer
+          home-manager.nixosModules.home-manager
+	  {
+	    home-manager = {
+	      useGlobalPkgs = true;
+	      useUserPackages = true;
+	      extraSpecialArgs = { inherit inputs; };
+	      users.ldmnyblzs = ./users/ldmnyblzs/home.nix;
+	    };
+	  }
+          #sops-nix.nixosModules.sops
+        ];
+      };
+      lenovo = nixpkgs.lib.nixosSystem {
+        system = "x86_64-linux";
+        modules = [
+          ./hosts/lenovo
           home-manager.nixosModules.home-manager
 	  {
 	    home-manager = {

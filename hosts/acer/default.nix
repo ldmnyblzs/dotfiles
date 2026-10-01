@@ -77,7 +77,7 @@
           "802-1x" = {
             eap = "ttls;";
             phase2-auth = "pap";
-            ca-cert = "${./certs/eduroam-ca-cert.crt}";
+            ca-cert = "${../common/certs/eduroam-ca-cert.crt}";
             identity = "105271@bme.hu";
             anonymous-identity = "105271@bme.hu";
           };
