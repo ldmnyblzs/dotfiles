@@ -48,6 +48,14 @@ in {
   };
   programs = {
     home-manager.enable = true;
+    git = {
+      enable = true;
+      package = null; # use the system package
+      settings.user = {
+        name = "Balazs Ludmany";
+        email = "ludmany.balazs@cloud.bme.hu";
+      };
+    };
     emacs = {
       enable = true;
       package = pkgs.emacs30-pgtk;
