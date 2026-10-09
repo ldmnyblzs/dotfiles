@@ -1,5 +1,8 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 {
+  imports = [
+    ../../modules/firefox-memory.nix
+  ];
   system.stateVersion = "26.05";
 
   hardware = {
@@ -12,8 +15,14 @@
   };
 
   boot = {
+    kernel.sysctl."vm.swappiness" = 100;
     kernelPackages = pkgs.linuxPackages_latest;
     kernelModules = [ "kvm-amd" ];
+    kernelParams = [
+      "zswap.enabled=1"
+      "zswap.compressor=zstd"
+      "zswap.max_pool_percent=25"
+    ];
     extraModulePackages = [ ];
     loader = {
       systemd-boot.enable = true;
@@ -21,7 +30,7 @@
     };
     initrd = {
       availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "usbhid" "sd_mod" "rtsx_usb_sdmmc" ];
-      kernelModules = [ ];
+      kernelModules = [ "zstd" ];
       luks.devices = {
         root.device = "/dev/disk/by-partlabel/root";
         swap.device = "/dev/disk/by-partlabel/swap";
@@ -188,5 +197,44 @@
       ldmnyblzs.password = "test";
     };
     security.sudo.wheelNeedsPassword = false;
+  };
+  my.firefox.memoryHigh = "4G";
+
+  # There is something wrong with the motherboard,
+  # sometimes it won't resume from hibernation/sleep.
+  # Make sure it doesn't hibernate/go to sleep on its own.
+  systemd = {
+    sleep.settings.Sleep = {
+      AllowSuspend = "no";
+      AllowHibernation = "no";
+      AllowHybridSleep = "no";
+      AllowSuspendThenHibernate = "no";
+    };
+    targets = {
+      sleep.enable = false;
+      suspend.enable = false;
+      hibernate.enable = false;
+      hybrid-sleep.enable = false;
+      suspend-then-hibernate.enable = false;
+    };
+  };
+  services = {
+    logind.settings.Login = {
+      HandleLidSwitch = "lock";
+      HandleLidSwitchExternalPower = "lock";
+      HandleLidSwitchDocked = "ignore";
+      HandleSuspendKey = "ignore";
+      HandleSuspendKeyLongPress = "ignore";
+      HandleHibernateKey = "ignore";
+      HandleHibernateKeyLongPress = "ignore";
+      IdleAction = "ignore";
+    };
+    upower.criticalPowerAction = lib.mkForce "PowerOff";
+  };
+
+  # The system sometimes hangs after long hardware accelerated video playback.
+  # Experiment with turning GFXOFF off.
+  specialisation.gfxoff.configuration = {
+    boot.kernelParams = [ "amdgpu.gfxoff=0" ];
   };
 }

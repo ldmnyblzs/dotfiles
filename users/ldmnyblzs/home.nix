@@ -10,6 +10,7 @@ let
   };
   julia-custom = pkgs.julia.withPackages [
     "LanguageServer"
+    "Revise"
   ];
   julia-lsp = pkgs.writeShellScriptBin "julia-lsp" ''
       exec ${julia-custom}/bin/julia \
@@ -29,6 +30,7 @@ in {
       nixd
       nixfmt
       texliveFull # may not use most of it, but I have a 2TB drive
+      texlab
       ghostscript # required by AUCTeX
       enchant # for troubleshooting dictionaries
       teams-for-linux
@@ -119,6 +121,7 @@ in {
           "plasma-browser-integration@kde.org" = mkAddon "plasma-integration";
           "en-US@dictionaries.addons.mozilla.org" = mkAddon "english-us-dictionary";
           "hu@dictionaries.addons.mozilla.org" = mkAddon "hungarian-dictionary";
+          "{9a41dee2-b924-4161-a971-7fb35c053a4a}" = mkAddon "enhanced-h264ify";
         };
         ExtensionUpdate = false;
         HardwareAcceleration = true;

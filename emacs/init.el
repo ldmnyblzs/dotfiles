@@ -46,23 +46,52 @@
   :ensure t
   :mode "\\.jl$")
 
-(use-package julia-repl
+(use-package julia-snail
   :ensure t
   :after julia-ts-mode
-  :hook (julia-ts-mode . julia-repl-mode)
-  :config
-  (setq julia-repl-switches "--project=@.")
-  (julia-repl-set-terminal-backend 'vterm))
+  :hook (julia-ts-mode . julia-snail-mode)
+  :custom
+  (julia-snail-extra-args '("--project=@.")))
 
 (use-package eglot
   :ensure nil
-  :hook (julia-ts-mode . eglot-ensure)
+  :hook ((julia-ts-mode . eglot-ensure)
+	 (LaTeX-mode . eglot-ensure))
+  :custom
+  (eglot-workspace-configuration
+   '(:texlab (:chktex (:onOpenAndSave t :onEdit t))))
   :config
   (add-to-list 'eglot-server-programs
-	       '(julia-ts-mode . ("julia-lsp"))))
+	       '(julia-ts-mode . ("julia-lsp"))
+	       '((LaTeX-mode plain-TeX-mode) . ("texlab"))))
+
+(use-package treemacs
+  :ensure t
+  :defer t
+  :bind (("<f8>" . treemacs)
+         ("M-0"  . treemacs-select-window))
+  :custom
+  (treemacs-width 32)
+  :config
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-project-follow-mode t)
+  (treemacs-git-mode 'deferred))
+
+(use-package treemacs-magit
+  :ensure t
+  :after (treemacs magit))
+
+(use-package company
+  :ensure t
+  :hook (after-init . global-company-mode))
 
 (use-package tex
   :ensure auctex
+  :hook ((LaTeX-mode . turn-on-reftex)
+	 (LaTeX-mode . LaTeX-math-mode)
+	 (LaTeX-mode . TeX-fold-mode)
+	 (LaTeX-mode . (lambda () (setq TeX-command-default "LaTeXMk"))))
   :custom
   (TeX-PDF-mode t)
   (TeX-auto-save t)
@@ -72,5 +101,26 @@
   (TeX-source-correlate-mode t)
   (TeX-source-correlate-start-server t)
   (TeX-source-correlate-method 'synctex)
+  (reftex-plug-into-AUCTeX t)
   :config
   (add-hook 'TeX-after-compilation-finished-functions #'TeX-revert-document-buffer))
+
+(use-package cdlatex
+  :ensure t
+  :after latex
+  :hook (LaTeX-mode . turn-on-cdlatex))
+
+(use-package citar
+  :ensure t
+  :after latex
+  :custom (citar-bibliography '("~/bib/references.bib"))
+  :hook (LaTeX-mode . citar-capf-setup))
+
+(use-package auctex-cont-latexmk
+  :ensure t
+  :after latex
+  :hook (LaTeX-mode . auctex-cont-latexmk-mode))
+
+(use-package jinx
+  :ensure nil
+  :hook (LaTeX-mode . jinx-mode))
