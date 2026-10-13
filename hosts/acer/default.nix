@@ -2,12 +2,13 @@
 {
   imports = [
     ../../modules/firefox-memory.nix
+    ./workarounds.nix
   ];
   system.stateVersion = "26.05";
 
   hardware = {
     enableRedistributableFirmware = true;
-    cpu.amd.updateMicrocode = config.hardware.enableRedistributableFirmware;
+    cpu.amd.updateMicrocode = true;
     bluetooth = {
       enable = true;
       powerOnBoot = true;
@@ -56,7 +57,11 @@
     "/nix" = {
       device = "/dev/mapper/root";
       fsType = "btrfs";
-      options = [ "subvol=nix" ];
+      options = [
+        "subvol=nix"
+        "compress=zstd:1"
+        "noatime"
+      ];
     };
   };
   
@@ -95,7 +100,10 @@
     };
   };
 
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix = {
+    settings.experimental-features = [ "nix-command" "flakes" ];
+    optimise.automatic = true;
+  };
 
   nixpkgs = {
     hostPlatform = "x86_64-linux";
@@ -199,42 +207,4 @@
     security.sudo.wheelNeedsPassword = false;
   };
   my.firefox.memoryHigh = "4G";
-
-  # There is something wrong with the motherboard,
-  # sometimes it won't resume from hibernation/sleep.
-  # Make sure it doesn't hibernate/go to sleep on its own.
-  systemd = {
-    sleep.settings.Sleep = {
-      AllowSuspend = "no";
-      AllowHibernation = "no";
-      AllowHybridSleep = "no";
-      AllowSuspendThenHibernate = "no";
-    };
-    targets = {
-      sleep.enable = false;
-      suspend.enable = false;
-      hibernate.enable = false;
-      hybrid-sleep.enable = false;
-      suspend-then-hibernate.enable = false;
-    };
-  };
-  services = {
-    logind.settings.Login = {
-      HandleLidSwitch = "lock";
-      HandleLidSwitchExternalPower = "lock";
-      HandleLidSwitchDocked = "ignore";
-      HandleSuspendKey = "ignore";
-      HandleSuspendKeyLongPress = "ignore";
-      HandleHibernateKey = "ignore";
-      HandleHibernateKeyLongPress = "ignore";
-      IdleAction = "ignore";
-    };
-    upower.criticalPowerAction = lib.mkForce "PowerOff";
-  };
-
-  # The system sometimes hangs after long hardware accelerated video playback.
-  # Experiment with turning GFXOFF off.
-  specialisation.gfxoff.configuration = {
-    boot.kernelParams = [ "amdgpu.gfxoff=0" ];
-  };
 }
