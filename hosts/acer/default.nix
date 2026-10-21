@@ -115,6 +115,11 @@
     displayManager.plasma-login-manager.enable = true;
     desktopManager.plasma6.enable = true;
     printing.enable = true;
+    avahi = {
+      enable = true;
+      nssmdns4 = true;
+      openFirewall = true;
+    };
     pulseaudio.enable = false;
     pipewire = {
       enable = true;
