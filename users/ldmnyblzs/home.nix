@@ -122,6 +122,7 @@ in {
           "en-US@dictionaries.addons.mozilla.org" = mkAddon "english-us-dictionary";
           "hu@dictionaries.addons.mozilla.org" = mkAddon "hungarian-dictionary";
           "{9a41dee2-b924-4161-a971-7fb35c053a4a}" = mkAddon "enhanced-h264ify";
+          "sponsorBlocker@ajay.app" = mkAddon "sponsorblock";
         };
         ExtensionUpdate = false;
         HardwareAcceleration = true;
