@@ -42,9 +42,17 @@
 (use-package magit
   :ensure t)
 
+(use-package nix-ts-mode
+  :ensure t)
 (use-package julia-ts-mode
+  :ensure t)
+(use-package treesit-auto
   :ensure t
-  :mode "\\.jl$")
+  :custom
+  (treesit-auto-install nil)  ; Nix provides grammars
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
 
 (use-package julia-snail
   :ensure t
@@ -55,15 +63,19 @@
 
 (use-package eglot
   :ensure nil
-  :hook ((julia-ts-mode . eglot-ensure)
-	 (LaTeX-mode . eglot-ensure))
+  :hook (((julia-mode julia-ts-mode) . eglot-ensure)
+	 (LaTeX-mode . eglot-ensure)
+	 ((yaml-mode yaml-ts-mode) . eglot-ensure)
+	 ((markdown-mode gfm-mode) . eglot-ensure))
   :custom
   (eglot-workspace-configuration
    '(:texlab (:chktex (:onOpenAndSave t :onEdit t))))
   :config
   (add-to-list 'eglot-server-programs
 	       '(julia-ts-mode . ("julia-lsp"))
-	       '((LaTeX-mode plain-TeX-mode) . ("texlab"))))
+	       '((LaTeX-mode plain-TeX-mode) . ("texlab"))
+	       '((yaml-mode yaml-ts-mode) . ("yaml-language-server" "--stdio"))
+	       '((markdown-mode gfm-mode)  . ("marksman" "server"))))
 
 (use-package treemacs
   :ensure t
@@ -124,3 +136,25 @@
 (use-package jinx
   :ensure nil
   :hook (LaTeX-mode . jinx-mode))
+
+(use-package apheleia
+  :ensure t
+  :config
+  (dolist (formatter '((nixfmt      . ("nixfmt"))
+                       (runic       . ("runic"))
+                       (shfmt       . ("shfmt"))
+                       (latexindent . ("latexindent" "-"))
+                       (bibtex-tidy . ("bibtex-tidy" "--quiet"))))
+    (push formatter apheleia-formatters))
+  
+  (dolist (mapping '(((nix-mode nix-ts-mode)             . nixfmt)
+                     ((c-mode c++-mode c-ts-mode c++-ts-mode) . clang-format)
+                     ((julia-mode julia-ts-mode)         . runic)
+                     ((yaml-mode yaml-ts-mode)           . prettier-yaml)
+                     ((markdown-mode gfm-mode)           . prettier-markdown)))
+    (dolist (mode (car mapping))
+      (push (cons mode (cdr mapping)) apheleia-mode-alist)))
+  (apheleia-global-mode +1))
+
+(use-package flymake-yamllint
+  :hook ((yaml-mode yaml-ts-mode) . flymake-yamllint-setup))

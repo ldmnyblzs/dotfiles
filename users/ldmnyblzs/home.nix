@@ -11,6 +11,7 @@ let
   julia-custom = pkgs.julia.withPackages [
     "LanguageServer"
     "Revise"
+    "Runic"
   ];
   julia-lsp = pkgs.writeShellScriptBin "julia-lsp" ''
       exec ${julia-custom}/bin/julia \
@@ -31,6 +32,7 @@ in {
       nixfmt
       texliveFull # may not use most of it, but I have a 2TB drive
       texlab
+      bibtex-tidy
       ghostscript # required by AUCTeX
       enchant # for troubleshooting dictionaries
       teams-for-linux
@@ -38,6 +40,12 @@ in {
       julia-custom
       julia-lsp
       gnumake
+      clang-tools
+      yaml-language-server
+      yamllint
+      marksman
+      prettier
+      shfmt
     ];
     file = {
       ".config/emacs" = {
@@ -63,7 +71,6 @@ in {
       enable = true;
       package = pkgs.emacs30-pgtk;
       extraPackages = epkgs: with epkgs; [
-        nix-mode
 	      nixfmt
         vterm
         pdf-tools
