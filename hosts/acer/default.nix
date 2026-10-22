@@ -72,7 +72,7 @@
   security.rtkit.enable = true;
 
   networking = {
-    hostName = "ldmnyblzs";
+    hostName = "acer";
     networkmanager = {
       enable = true;
       ensureProfiles = {

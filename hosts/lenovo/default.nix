@@ -58,7 +58,7 @@
   security.rtkit.enable = true;
 
   networking = {
-    hostName = "ldmnyblzs";
+    hostName = "lenovo";
     networkmanager = {
       enable = true;
       ensureProfiles = {

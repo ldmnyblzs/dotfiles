@@ -37,6 +37,7 @@ in {
       languagetool
       julia-custom
       julia-lsp
+      gnumake
     ];
     file = {
       ".config/emacs" = {
