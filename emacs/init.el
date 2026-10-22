@@ -157,4 +157,6 @@
   (apheleia-global-mode +1))
 
 (use-package flymake-yamllint
-  :hook ((yaml-mode yaml-ts-mode) . flymake-yamllint-setup))
+  :ensure t
+  :hook
+  ((yaml-mode yaml-ts-mode) . flymake-yamllint-setup))
