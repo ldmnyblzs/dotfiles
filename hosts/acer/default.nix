@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 {
   imports = [
     ../../modules/firefox-memory.nix
@@ -30,7 +35,14 @@
       efi.canTouchEfiVariables = true;
     };
     initrd = {
-      availableKernelModules = [ "xhci_pci" "ahci" "usb_storage" "usbhid" "sd_mod" "rtsx_usb_sdmmc" ];
+      availableKernelModules = [
+        "xhci_pci"
+        "ahci"
+        "usb_storage"
+        "usbhid"
+        "sd_mod"
+        "rtsx_usb_sdmmc"
+      ];
       kernelModules = [ "zstd" ];
       luks.devices = {
         root.device = "/dev/disk/by-partlabel/root";
@@ -43,7 +55,10 @@
     "/boot" = {
       device = "/dev/disk/by-partlabel/EFI";
       fsType = "vfat";
-      options = [ "fmask=0077" "dmask=0077" ];
+      options = [
+        "fmask=0077"
+        "dmask=0077"
+      ];
     };
     "/" = {
       device = "/dev/mapper/root";
@@ -64,7 +79,7 @@
       ];
     };
   };
-  
+
   swapDevices = [
     { device = "/dev/mapper/swap"; }
   ];
@@ -101,7 +116,10 @@
   };
 
   nix = {
-    settings.experimental-features = [ "nix-command" "flakes" ];
+    settings.experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
     optimise.automatic = true;
   };
 
@@ -161,6 +179,9 @@
       libarchive
       dpkg
       rpm
+      # SSH tools
+      sshpass
+      sshfs
     ];
     variables = {
       EDITOR = "mg";
@@ -188,7 +209,11 @@
   users.users.ldmnyblzs = {
     isNormalUser = true;
     description = "Balazs Ludmany";
-    extraGroups = [ "networkmanager" "wheel" config.hardware.i2c.group ];
+    extraGroups = [
+      "networkmanager"
+      "wheel"
+      config.hardware.i2c.group
+    ];
   };
 
   virtualisation.vmVariant = {

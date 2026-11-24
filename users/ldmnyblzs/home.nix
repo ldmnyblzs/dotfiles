@@ -14,10 +14,16 @@ let
     "Runic"
   ];
   julia-lsp = pkgs.writeShellScriptBin "julia-lsp" ''
-      exec ${julia-custom}/bin/julia \
-      -e 'using LanguageServer; runserver()'
-      '';
-in {
+    exec ${julia-custom}/bin/julia \
+    -e 'using LanguageServer; runserver()'
+  '';
+  oracleDir = "${config.home.homeDirectory}/mnt/oracle";
+  mountOracle = pkgs.writeShellScriptBin "mount-oracle" ''
+    ${pkgs.util-linux}/bin/mountpoint -q "${oracleDir}" || \
+      ${pkgs.sshfs}/bin/sshfs oracle:. "${oracleDir}" -o PermitLocalCommand=no,idmap=user
+  '';
+in
+{
   home = {
     username = "ldmnyblzs";
     homeDirectory = "/home/ldmnyblzs";
@@ -46,21 +52,50 @@ in {
       marksman
       prettier
       shfmt
+      #copier
     ];
-    file = {
-      ".config/emacs" = {
-        source = ../../emacs;
-        recursive = true;
-      };
-    };
     sessionVariables = {
       MOZ_USE_XINPUT2 = "1";
     };
   };
+  xdg.configFile = {
+    "emacs" = {
+      source = ../../emacs;
+      recursive = true;
+    };
+    # "copier/settings.yml".text = ''
+    #   defaults:
+    #     user_name: "Your Name"
+    #     user_email: "you@example.com"
+    #     github_user: "your-github-username"
+    #   trust:
+    #     - ${config.home.homeDirectory}/Templates/
+    # '';
+  };
   programs = {
+    bash = {
+      enable = true;
+      # initExtra = builtins.readFile ./instantiate.bash;
+    };
+    ssh = {
+      enable = true;
+      settings."oracle" = {
+        HostName = "92.5.124.38";
+        User = "ubuntu";
+        IdentityFile = "~/.ssh/oracle";
+        AddKeysToAgent = "yes";
+        PermitLocalCommand = "yes";
+        LocalCommand = "${mountOracle}/bin/mount-oracle";
+      };
+    };
+    direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
     home-manager.enable = true;
     git = {
       enable = true;
+
       package = null; # use the system package
       settings.user = {
         name = "Balazs Ludmany";
@@ -70,14 +105,15 @@ in {
     emacs = {
       enable = true;
       package = pkgs.emacs30-pgtk;
-      extraPackages = epkgs: with epkgs; [
-	      nixfmt
-        vterm
-        pdf-tools
-        treesit-grammars.with-all-grammars
-        sqlite3 # used by, for example, Org-roam
-        jinx
-      ];
+      extraPackages =
+        epkgs: with epkgs; [
+          nixfmt
+          vterm
+          pdf-tools
+          treesit-grammars.with-all-grammars
+          sqlite3 # used by, for example, Org-roam
+          jinx
+        ];
     };
     password-store = {
       enable = true;
@@ -122,7 +158,7 @@ in {
         ExtensionSettings = {
           "*" = {
             installation_mode = "blocked";
-            installation_sources = [];
+            installation_sources = [ ];
           };
           "languagetool-webextension@languagetool.org" = mkAddon "languagetool";
           "uBlock0@raymondhill.net" = mkAddon "ublock-origin";
@@ -211,5 +247,6 @@ in {
       client.enable = true;
       defaultEditor = true;
     };
+    ssh-agent.enable = true;
   };
 }

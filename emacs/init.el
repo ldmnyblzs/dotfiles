@@ -54,28 +54,43 @@
   (treesit-auto-add-to-auto-mode-alist 'all)
   (global-treesit-auto-mode))
 
+;;; (use-package envrc
+;;;   :hook (after-init . envrc-global-mode))
+
+;;; (use-package inheritenv)
+
 (use-package julia-snail
   :ensure t
-  :after julia-ts-mode
+  :after julia-ts-mode ;inheritenv
   :hook (julia-ts-mode . julia-snail-mode)
+  :config
+  ;;; (inheritenv-add-advice 'julia-snail)
   :custom
   (julia-snail-extra-args '("--project=@.")))
 
 (use-package eglot
   :ensure nil
   :hook (((julia-mode julia-ts-mode) . eglot-ensure)
-	 (LaTeX-mode . eglot-ensure)
+	 ((LaTeX-mode plain-TeX-mode) . eglot-ensure)
 	 ((yaml-mode yaml-ts-mode) . eglot-ensure)
-	 ((markdown-mode gfm-mode) . eglot-ensure))
+	 ((markdown-mode gfm-mode) . eglot-ensure)
+	 ((nix-mode nix-ts-mode) . eglot-ensure))
   :custom
   (eglot-workspace-configuration
-   '(:texlab (:chktex (:onOpenAndSave t :onEdit t))))
+   '(:texlab (:chktex (:onOpenAndSave t :onEdit t)))
+   '(:nixd (:nixpkgs (:expr "import <nixpkgs> {}")
+		     :options
+                     (:acer
+                      (:expr "(builtins.getFlake (toString ./.)).nixosConfigurations.acer.options")
+                      :lenovo
+                      (:expr "(builtins.getFlake (toString ./.)).nixosConfigurations.lenovo.options")))))
   :config
-  (add-to-list 'eglot-server-programs
-	       '(julia-ts-mode . ("julia-lsp"))
-	       '((LaTeX-mode plain-TeX-mode) . ("texlab"))
-	       '((yaml-mode yaml-ts-mode) . ("yaml-language-server" "--stdio"))
-	       '((markdown-mode gfm-mode)  . ("marksman" "server"))))
+  (dolist (server '(((julia-mode julia-ts-mode) . ("julia-lsp"))
+		    ((LaTeX-mode plain-TeX-mode) . ("texlab"))
+		    ((yaml-mode yaml-ts-mode) . ("yaml-language-server" "--stdio"))
+		    ((markdown-mode gfm-mode)  . ("marksman" "server"))
+		    ((nix-mode nix-ts-mode) . ("nixd"))))
+    (push server eglot-server-programs)))
 
 (use-package treemacs
   :ensure t
@@ -140,7 +155,7 @@
 (use-package apheleia
   :ensure t
   :config
-  (dolist (formatter '((nixfmt      . ("nixfmt"))
+  (dolist (formatter '((nixfmt      . ("nixfmt" "-"))
                        (runic       . ("runic"))
                        (shfmt       . ("shfmt"))
                        (latexindent . ("latexindent" "-"))
@@ -160,3 +175,4 @@
   :ensure t
   :hook
   ((yaml-mode yaml-ts-mode) . flymake-yamllint-setup))
+
